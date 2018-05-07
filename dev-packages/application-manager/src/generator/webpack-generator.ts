@@ -29,6 +29,7 @@ const webpack = require('webpack');
 const yargs = require('yargs');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const CircularDependencyPlugin = require('circular-dependency-plugin');
+// const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
 
 const outputPath = path.resolve(__dirname, 'lib');
 const { mode }  = yargs.option('mode', {
@@ -38,7 +39,8 @@ const { mode }  = yargs.option('mode', {
 }).argv;
 const development = mode === 'development';${this.ifMonaco(() => `
 
-const monacoEditorPath = development ? '${this.resolve('monaco-editor-core', 'dev/vs')}' : '${this.resolve('monaco-editor-core', 'min/vs')}';
+const monacoEditorPath = development ? '${this.resolve('monaco-editor', 'dev/vs')}' : '${this.resolve('monaco-editor', 'esm/vs')}';
+const monacoEditorCorePath = development ? '${this.resolve('monaco-editor-core', 'dev/vs')}' : '${this.resolve('monaco-editor-core', 'min/vs')}';
 const monacoLanguagesPath = '${this.resolve('monaco-languages', 'release/min')}';
 const monacoCssLanguagePath = '${this.resolve('monaco-css', 'release/min')}';
 const monacoJsonLanguagePath = '${this.resolve('monaco-json', 'release/min')}';
@@ -91,7 +93,7 @@ module.exports = {
                 test: /\\.js$/,
                 enforce: 'pre',
                 loader: 'source-map-loader',
-                exclude: /jsonc-parser/
+                exclude: /jsonc-parser|fast-plist|onigasm|(monaco-editor.*)/
             },
             {
                 test: /\\.woff(2)?(\\?v=[0-9]\\.[0-9]\\.[0-9])?$/,
@@ -100,6 +102,11 @@ module.exports = {
             {
                 test: /node_modules[\\\\|\/](vscode-languageserver-types|vscode-uri|jsonc-parser)/,
                 use: { loader: 'umd-compat-loader' }
+            },
+            {
+                test: /\.wasm$/,
+                loader: "file-loader",
+                type: "javascript/auto",
             }
         ]
     },
@@ -136,7 +143,7 @@ module.exports = {
         new CircularDependencyPlugin({
             exclude: /(node_modules|examples)\\/./,
             failOnError: false // https://github.com/nodejs/readable-stream/issues/280#issuecomment-297076462
-        })
+        }),
     ],
     stats: {
         warnings: true

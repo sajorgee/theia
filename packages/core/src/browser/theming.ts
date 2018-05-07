@@ -5,69 +5,56 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { injectable, inject } from 'inversify';
+import { injectable, inject, named, postConstruct } from 'inversify';
+import { FrontendApplicationContribution } from '.';
 import { CommandRegistry, CommandContribution, CommandHandler, Command } from '../common/command';
-import { QuickOpenService } from './quick-open/quick-open-service';
-import { QuickOpenModel, QuickOpenItem, QuickOpenMode } from './quick-open/quick-open-model';
+import { Theme, ThemeProvider } from '../common/theming-protocol';
+import { ContributionProvider } from '../common';
+import { Deferred } from '../common/promise-util';
 import { Emitter, Event } from '../common/event';
+import { QuickOpenModel, QuickOpenItem, QuickOpenMode } from './quick-open/quick-open-model';
+import { QuickOpenService } from './quick-open/quick-open-service';
 
-const dark = require('../../src/browser/style/variables-dark.useable.css');
-const light = require('../../src/browser/style/variables-bright.useable.css');
-
-export interface Theme {
-    id: string;
-    label: string;
-    description?: string;
-    editorTheme?: string;
-    activate(): void;
-    deactivate(): void;
-}
+export const DefaultThemeName = Symbol('DefaultThemeName');
 
 export interface ThemeChangeEvent {
     newTheme: Theme;
     oldTheme?: Theme;
 }
 
-const darkTheme: Theme = {
-    id: 'dark',
-    label: 'Dark Theme',
-    description: 'Bright fonts on dark backgrounds.',
-    editorTheme: 'vs-dark',
-    activate() {
-        dark.use();
-    },
-    deactivate() {
-        dark.unuse();
-    }
-};
-
-const lightTheme: Theme = {
-    id: 'light',
-    label: 'Light Theme',
-    description: 'Dark fonts on light backgrounds.',
-    editorTheme: 'vs',
-    activate() {
-        light.use();
-    },
-    deactivate() {
-        light.unuse();
-    }
-};
-
-export class ThemeService {
+@injectable()
+export class ThemeService implements ThemeProvider {
 
     private themes: { [id: string]: Theme } = {};
     private activeTheme: Theme | undefined;
     private readonly themeChange = new Emitter<ThemeChangeEvent>();
-    public readonly onThemeChange: Event<ThemeChangeEvent> = this.themeChange.event;
+    protected readonly _ready = new Deferred<void>();
 
-    protected constructor(private defaultTheme: string) { }
+    @inject(ContributionProvider) @named(ThemeProvider)
+    protected readonly themeProviderContributionProvider: ContributionProvider<ThemeProvider>;
+
+    @inject(DefaultThemeName)
+    public readonly defaultTheme: string;
+
+    readonly onThemeChange: Event<ThemeChangeEvent> = this.themeChange.event;
+    readonly ready = this._ready.promise;
+
+    protected constructor() {
+        const wnd = window as any; // tslint:disable-line
+        wnd.__themeService = this;
+    }
+
+    @postConstruct()
+    protected async init() {
+        await this.gatherThemes();
+        this._ready.resolve();
+    }
 
     register(theme: Theme) {
         this.themes[theme.id] = theme;
     }
 
-    getThemes(): Theme[] {
+    getThemes() {
         const result = [];
         for (const o in this.themes) {
             if (this.themes.hasOwnProperty(o)) {
@@ -77,18 +64,47 @@ export class ThemeService {
         return result;
     }
 
+    getTheme(themeId: string) {
+        return this.themes[themeId] || this.themes[this.defaultTheme];
+    }
+
+    async gatherThemes() {
+        const gathered: Theme[] = [];
+
+        // Concurrent gathering of the themes
+        await Promise.all(
+            this.themeProviderContributionProvider.getContributions()
+                .map(provider => provider.gatherThemes()
+                    .catch(error => {
+                        console.error(error);
+                        return [];
+                    })
+                    .then(themes => {
+                        gathered.push(...themes);
+                    })
+                )
+        );
+
+        // Update theme cache in one synchronous execution
+        for (const theme of gathered) {
+            this.register(theme);
+        }
+
+        return gathered;
+    }
+
     setCurrentTheme(themeId: string) {
-        const newTheme = this.themes[themeId] || this.themes[this.defaultTheme];
+        const newTheme = this.getTheme(themeId);
         const oldTheme = this.activeTheme;
         if (oldTheme) {
             oldTheme.deactivate();
         }
         newTheme.activate();
         this.activeTheme = newTheme;
+        window.localStorage.setItem('theme', themeId);
         this.themeChange.fire({
             newTheme, oldTheme
         });
-        window.localStorage.setItem('theme', themeId);
     }
 
     getCurrentTheme(): Theme {
@@ -96,18 +112,20 @@ export class ThemeService {
         return this.themes[themeId] || this.themes[this.defaultTheme];
     }
 
-    static get() {
-        // tslint:disable-next-line:no-any
-        const wnd = window as any;
-        if (!wnd.__themeService) {
-            const themeService = new ThemeService('dark');
-            wnd.__themeService = themeService;
-        }
-        return wnd.__themeService as ThemeService;
+}
+
+@injectable()
+export class ThemingFrontendApplicationContribution implements FrontendApplicationContribution {
+
+    @inject(ThemeService)
+    protected readonly themeService: ThemeService;
+
+    async initialize() {
+        await this.themeService.ready;
+        const currentTheme = this.themeService.getCurrentTheme();
+        this.themeService.setCurrentTheme(currentTheme.id);
     }
 }
-ThemeService.get().register(darkTheme);
-ThemeService.get().register(lightTheme);
 
 @injectable()
 export class ThemingCommandContribution implements CommandContribution, CommandHandler, Command, QuickOpenModel {
@@ -115,9 +133,12 @@ export class ThemingCommandContribution implements CommandContribution, CommandH
     id = 'change_theme';
     label = 'Change Color Theme';
     private resetTo: string | undefined;
-    private themeService = ThemeService.get();
 
-    constructor( @inject(QuickOpenService) protected openService: QuickOpenService) { }
+    @inject(ThemeService)
+    protected readonly themeService: ThemeService;
+
+    @inject(QuickOpenService)
+    protected readonly openService: QuickOpenService;
 
     registerCommands(commands: CommandRegistry): void {
         commands.registerCommand(this, this);
@@ -140,12 +161,7 @@ export class ThemingCommandContribution implements CommandContribution, CommandH
     private activeIndex() {
         const current = this.themeService.getCurrentTheme().id;
         const themes = this.themeService.getThemes();
-        for (let i = 0; i < themes.length; i++) {
-            if (themes[i].id === current) {
-                return i;
-            }
-        }
-        return -1;
+        return themes.findIndex(theme => theme.id === current);
     }
 
     onType(lookFor: string, acceptor: (items: QuickOpenItem[]) => void): void {
@@ -162,5 +178,46 @@ export class ThemingCommandContribution implements CommandContribution, CommandH
                 }
             }));
         acceptor(items);
+    }
+}
+
+@injectable()
+export class BuiltinThemeProvider implements ThemeProvider {
+
+    // Webpack converts these `require` in some Javascript object that wraps the `.css` files
+    static readonly dark = require('../../src/browser/style/variables-dark.useable.css');
+    static readonly light = require('../../src/browser/style/variables-bright.useable.css');
+
+    static readonly themes = [
+        {
+            // Dark Theme
+            id: 'dark',
+            label: 'Dark Theme',
+            description: 'Bright fonts on dark backgrounds.',
+            editorTheme: 'vs-dark',
+            activate() {
+                BuiltinThemeProvider.dark.use();
+            },
+            deactivate() {
+                BuiltinThemeProvider.dark.unuse();
+            }
+        },
+        {
+            // Light Theme
+            id: 'light',
+            label: 'Light Theme',
+            description: 'Dark fonts on light backgrounds.',
+            editorTheme: 'vs',
+            activate() {
+                BuiltinThemeProvider.light.use();
+            },
+            deactivate() {
+                BuiltinThemeProvider.light.unuse();
+            }
+        },
+    ];
+
+    async gatherThemes() {
+        return BuiltinThemeProvider.themes;
     }
 }

@@ -36,9 +36,11 @@ import { LabelParser } from './label-parser';
 import { LabelProvider, LabelProviderContribution, DefaultUriLabelProviderContribution } from "./label-provider";
 import {
     PreferenceProviders, PreferenceProvider,
-    PreferenceScope, PreferenceService, PreferenceServiceImpl } from './preferences';
+    PreferenceScope, PreferenceService, PreferenceServiceImpl
+} from './preferences';
 import { ContextMenuRenderer } from './context-menu-renderer';
-import { ThemingCommandContribution, ThemeService } from './theming';
+import { DefaultThemeName, ThemingCommandContribution, ThemeService, BuiltinThemeProvider, ThemingFrontendApplicationContribution } from './theming';
+import { ThemeProvider } from '../common/theming-protocol';
 import { ConnectionStatusService, FrontendConnectionStatusService, ApplicationConnectionStatusContribution } from './connection-status-service';
 import { DiffUriLabelProviderContribution } from './diff-uris';
 import { ApplicationServer, applicationPath } from "../common/application-protocol";
@@ -121,8 +123,6 @@ export const frontendApplicationModule = new ContainerModule((bind, unbind, isBo
     bind(LabelProviderContribution).to(DefaultUriLabelProviderContribution).inSingletonScope();
     bind(LabelProviderContribution).to(DiffUriLabelProviderContribution).inSingletonScope();
 
-    bind(CommandContribution).to(ThemingCommandContribution).inSingletonScope();
-
     bind(PreferenceProvider).toSelf().inSingletonScope().whenTargetNamed(PreferenceScope.User);
     bind(PreferenceProvider).toSelf().inSingletonScope().whenTargetNamed(PreferenceScope.Workspace);
     bind(PreferenceProviders).toFactory(ctx => (scope: PreferenceScope) => ctx.container.getNamed(PreferenceProvider, scope));
@@ -149,7 +149,13 @@ export const frontendApplicationModule = new ContainerModule((bind, unbind, isBo
         const connection = ctx.container.get(WebSocketConnectionProvider);
         return connection.createProxy<EnvVariablesServer>(envVariablesPath);
     }).inSingletonScope();
-});
 
-const theme = ThemeService.get().getCurrentTheme().id;
-ThemeService.get().setCurrentTheme(theme);
+    bind(ThemeService).toSelf().inSingletonScope();
+    bind(DefaultThemeName).toConstantValue('dark');
+
+    bind(CommandContribution).to(ThemingCommandContribution).inSingletonScope();
+    bind(FrontendApplicationContribution).to(ThemingFrontendApplicationContribution).inSingletonScope();
+
+    bindContributionProvider(bind, ThemeProvider);
+    bind(ThemeProvider).to(BuiltinThemeProvider).inSingletonScope();
+});

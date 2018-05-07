@@ -21,6 +21,7 @@
     "@theia/metrics": "^0.3.11",
     "@theia/mini-browser": "^0.3.11",
     "@theia/monaco": "^0.3.11",
+    "@theia/monaco-textmate": "^0.3.11",
     "@theia/navigator": "^0.3.11",
     "@theia/outline-view": "^0.3.11",
     "@theia/output": "^0.3.11",
