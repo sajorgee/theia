@@ -4,6 +4,7 @@
   "version": "0.3.11",
   "dependencies": {
     "@theia/callhierarchy": "^0.3.11",
+    "@theia/che": "^0.3.11",
     "@theia/core": "^0.3.11",
     "@theia/cpp": "^0.3.11",
     "@theia/editor": "^0.3.11",
