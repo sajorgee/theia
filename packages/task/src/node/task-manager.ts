@@ -5,8 +5,7 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 import { inject, injectable, named } from 'inversify';
-import { ILogger } from '@theia/core/lib/common/';
-import { Emitter, Event } from '@theia/core/lib/common';
+import { Emitter, Event, ILogger } from '@theia/core/lib/common';
 import { BackendApplicationContribution } from '@theia/core/lib/node';
 import { Task } from './task';
 
