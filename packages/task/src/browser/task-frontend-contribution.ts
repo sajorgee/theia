@@ -5,12 +5,13 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { inject, injectable, named } from "inversify";
-import { ILogger } from '@theia/core/lib/common';
+import { inject, injectable, named } from 'inversify';
+import { ILogger, ContributionProvider } from '@theia/core/lib/common';
 import { QuickOpenTask } from './quick-open-task';
 import { MAIN_MENU_BAR, CommandContribution, Command, CommandRegistry, MenuContribution, MenuModelRegistry } from '@theia/core/lib/common';
-import { FrontendApplication } from '@theia/core/lib/browser';
+import { FrontendApplication, FrontendApplicationContribution } from '@theia/core/lib/browser';
 import { WidgetManager } from '@theia/core/lib/browser/widget-manager';
+import { TaskContribution, TaskResolverRegistry, TaskProviderRegistry } from './task-contribution';
 
 export namespace TaskCommands {
     // Task menu
@@ -35,14 +36,38 @@ export namespace TaskCommands {
 }
 
 @injectable()
-export class TaskFrontendContribution implements CommandContribution, MenuContribution {
+export class TaskFrontendContribution implements CommandContribution, MenuContribution, FrontendApplicationContribution {
+    @inject(QuickOpenTask)
+    protected readonly quickOpenTask: QuickOpenTask;
 
-    constructor(
-        @inject(QuickOpenTask) protected readonly quickOpenTask: QuickOpenTask,
-        @inject(FrontendApplication) protected readonly app: FrontendApplication,
-        @inject(ILogger) @named('task') protected readonly logger: ILogger,
-        @inject(WidgetManager) protected readonly widgetManager: WidgetManager
-    ) { }
+    @inject(FrontendApplication)
+    protected readonly app: FrontendApplication;
+
+    @inject(ILogger) @named('task')
+    protected readonly logger: ILogger;
+
+    @inject(WidgetManager)
+    protected readonly widgetManager: WidgetManager;
+
+    @inject(ContributionProvider) @named(TaskContribution)
+    protected readonly contributionProvider: ContributionProvider<TaskContribution>;
+
+    @inject(TaskProviderRegistry)
+    protected readonly taskProviderRegistry: TaskProviderRegistry;
+
+    @inject(TaskResolverRegistry)
+    protected readonly taskResolverRegistry: TaskResolverRegistry;
+
+    onStart(): void {
+        this.contributionProvider.getContributions().forEach(contrib => {
+            if (contrib.registerResolvers) {
+                contrib.registerResolvers(this.taskResolverRegistry);
+            }
+            if (contrib.registerProviders) {
+                contrib.registerProviders(this.taskProviderRegistry);
+            }
+        });
+    }
 
     registerCommands(registry: CommandRegistry): void {
         registry.registerCommand(
@@ -76,5 +101,4 @@ export class TaskFrontendContribution implements CommandContribution, MenuContri
             order: '1'
         });
     }
-
 }
