@@ -7,6 +7,7 @@
 
 import { injectable, inject } from 'inversify';
 import { WebSocketConnectionProvider } from './messaging/ws-connection-provider';
+import { WsMasterHttpClient } from './ws-master-http-client';
 
 export interface MachineIdentifier {
     machineName: string,
@@ -31,13 +32,24 @@ export interface ExecAttachClient {
 @injectable()
 export class ExecAttachClientFactory {
 
-    private apiEndPoint: string;
+    private apiEndpoint: string;
 
-    constructor(@inject(WebSocketConnectionProvider) protected readonly connProvider: WebSocketConnectionProvider) {
-        this.apiEndPoint = 'ws://172.17.0.1:32772/attach/';
+    @inject(WebSocketConnectionProvider)
+    protected readonly connProvider: WebSocketConnectionProvider;
+
+    @inject(WsMasterHttpClient)
+    protected readonly wsMasterHttpClient: WsMasterHttpClient;
+
+    constructor() {
+        this.apiEndpoint = 'ws://172.17.0.1:32782/attach/';
+        // const serverURL = this.wsMasterHttpClient.getServer('terminal-exec');
+        // if (serverURL === undefined || serverURL) {
+        //     throw new Error("terminal-exec server doesn't");
+        // }
+        // this.apiEndpoint = serverURL;
     }
 
     create(id: number): ExecAttachClient {
-        return this.connProvider.createProxy<ExecAttachClient>(this.apiEndPoint + id);
+        return this.connProvider.createProxy<ExecAttachClient>(this.apiEndpoint + id);
     }
 }

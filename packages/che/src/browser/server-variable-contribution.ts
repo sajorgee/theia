@@ -9,6 +9,11 @@ import { inject, injectable } from 'inversify';
 import { VariableContribution, VariableRegistry } from '@theia/variable-resolver/lib/browser';
 import { Workspace } from './che-workspace-client';
 
+/** Contributes the variables, in form of `server.<name>`, which are resolve to the URL Che machines' servers. */
+/**
+ * For each server of each machine of the current Che workspace
+ * registers the variable that resolves to the appropriate server's URL.
+ */
 @injectable()
 export class ServerVariableContribution implements VariableContribution {
 
@@ -16,7 +21,7 @@ export class ServerVariableContribution implements VariableContribution {
     protected readonly workspaceService: Workspace;
 
     async registerVariables(variables: VariableRegistry): Promise<void> {
-        const machines = await this.workspaceService.getListMachines();
+        const machines = await this.workspaceService.getMachines();
         // tslint:disable-next-line:forin
         for (const machineName in machines) {
             const servers = machines[machineName].servers;

@@ -12,6 +12,7 @@ import { CheTaskRunner } from './che-task-runner';
 import { CheTaskRunnerContribution } from './che-task-runner-contribution';
 import { WebSocketConnectionProvider } from './messaging/ws-connection-provider';
 import { ExecCreateClient, ExecAttachClientFactory } from './machine-exec-client';
+import { WsMasterHttpClient } from './ws-master-http-client';
 
 export default new ContainerModule(bind => {
     bind(CheTaskRunner).toSelf().inSingletonScope();
@@ -21,7 +22,7 @@ export default new ContainerModule(bind => {
     bind(WebSocketConnectionProvider).toSelf().inSingletonScope();
     bind(ExecCreateClient).toDynamicValue(ctx => {
         const provider = ctx.container.get(WebSocketConnectionProvider);
-        return provider.createProxy<ExecCreateClient>('ws://172.17.0.1:32772/connect');
+        return provider.createProxy<ExecCreateClient>('ws://172.17.0.1:32782/connect');
     }).inSingletonScope();
     bind(ExecAttachClientFactory).toSelf().inSingletonScope();
 
@@ -34,4 +35,6 @@ export default new ContainerModule(bind => {
             return child.get(CheTask);
         }
     );
+
+    bind(WsMasterHttpClient).toSelf();
 });

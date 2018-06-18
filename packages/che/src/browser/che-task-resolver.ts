@@ -47,7 +47,8 @@ export class CheTaskResolver implements TaskResolver {
             type: cheTaskConfig.type,
             label: cheTaskConfig.label,
             command: await this.variableResolverService.resolve(cheTaskConfig.command),
-            target: resultTarget
+            target: resultTarget,
+            previewUrl: cheTaskConfig.previewUrl
         };
         return resultTask;
     }

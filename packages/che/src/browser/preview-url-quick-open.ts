@@ -11,7 +11,7 @@ import { WindowService } from '@theia/core/lib/browser/window/window-service';
 import { TaskService } from '@theia/task/lib/browser';
 import { TaskConfigurations } from '@theia/task/lib/browser/task-configurations';
 import { VariableResolverService } from '@theia/variable-resolver/lib/browser';
-import { CheTaskConfiguration } from '../common/task-protocol';
+import { CheTaskConfiguration, CHE_TASK_TYPE } from '../common/task-protocol';
 
 @injectable()
 export class PreviewUrlQuickOpen implements QuickOpenModel {
@@ -44,7 +44,7 @@ export class PreviewUrlQuickOpen implements QuickOpenModel {
             }
         }
         this.quickOpenService.open(this, {
-            placeholder: 'Pick the URL you want to go to',
+            placeholder: this.items.length ? 'Pick the URL you want to go to' : 'No Che tasks are running',
             fuzzyMatchLabel: true,
             fuzzyMatchDescription: true,
             fuzzySort: true
@@ -60,7 +60,7 @@ export class PreviewUrlQuickOpen implements QuickOpenModel {
         const cheTasks: CheTaskConfiguration[] = [];
         const runningTasks = await this.taskService.getRunningTasks();
         runningTasks.forEach(task => {
-            if (task.config.type === 'che') {
+            if (task.config.type === CHE_TASK_TYPE) {
                 const cheTaskConfig = task.config as CheTaskConfiguration;
                 if (cheTaskConfig.previewUrl) {
                     cheTasks.push(cheTaskConfig);

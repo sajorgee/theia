@@ -9,10 +9,9 @@ import { injectable, inject } from 'inversify';
 import WorkspaceClient, { IWorkspace, IRequestError, IRemoteAPI, IServer, IMachine, ICommand } from '@eclipse-che/workspace-client';
 import { EnvVariablesServer } from '@theia/core/lib/common/env-variables/env-variables-protocol';
 
-const TYPE: string = "type";
-
 export type TerminalApiEndPointProvider = () => Promise<string>;
 
+/** Facade for getting an info about the current Che workspace. */
 @injectable()
 export class Workspace {
 
@@ -21,6 +20,7 @@ export class Workspace {
     @inject(EnvVariablesServer)
     protected readonly envVariablesServer: EnvVariablesServer;
 
+    /** Lists all commands from the workspace configuration. */
     public async getCommands(): Promise<ICommand[]> {
         const workspaceId = await this.getWorkspaceId();
         const restClient = await this.getRemoteApi();
@@ -30,14 +30,11 @@ export class Workspace {
 
         const ws = await restClient.getById<IWorkspace>(workspaceId);
         const commands = ws.config.commands;
-        if (commands) {
-            return commands;
-        } else {
-            return [];
-        }
+        return commands ? commands : [];
     }
 
-    public async getListMachines(): Promise<{ [attrName: string]: IMachine }> {
+    /** Lists all machines of the workspace runtime. */
+    public async getMachines(): Promise<{ [attrName: string]: IMachine }> {
         const machineNames: { [attrName: string]: IMachine } = {};
         const workspaceId = await this.getWorkspaceId();
         const restClient = await this.getRemoteApi();
@@ -47,53 +44,42 @@ export class Workspace {
         return new Promise<{ [attrName: string]: IMachine }>((resolve, reject) => {
             restClient.getById<IWorkspace>(workspaceId)
                 .then((workspace: IWorkspace) => {
-                    if (workspace.runtime) {
-                        resolve(workspace.runtime.machines);
-                        return;
-                    }
-                    resolve({});
+                    resolve(workspace.runtime ? workspace.runtime.machines : {});
                 })
                 .catch((reason: IRequestError) => {
-                    console.log("Failed to get workspace by ID: ", workspaceId, "Status code: ", reason.status);
+                    console.log(`Failed to get workspace by ID: ${workspaceId}. Status code: ${reason.status}`);
                     reject(reason.message);
                 });
         });
     }
 
-    public async findTerminalServer(): Promise<IServer | undefined> {
-        const machines = await this.getListMachines();
+    /** Returns a server by its name from workspace runtime. */
+    public async getServer(name: string): Promise<IServer | undefined> {
+        const machines = await this.getMachines();
         // tslint:disable-next-line:forin
         for (const machineName in machines) {
             const servers = machines[machineName].servers;
-            // tslint:disable-next-line:forin
             for (const serverName in servers) {
-                const attrs = servers[serverName].attributes;
-                if (attrs) {
-                    for (const attrName in attrs) {
-                        if (attrName === TYPE && attrs[attrName] === 'terminal') {
-                            return servers[serverName];
-                        }
-                    }
+                if (serverName === name) {
+                    return servers[serverName];
                 }
             }
         }
         return undefined;
     }
 
-    public async getWorkspaceId(): Promise<string> {
-        // const variable = await this.envVariablesServer.getValue("CHE_WORKSPACE_ID");
-        // if (variable && variable.value) {
-        //     return variable.value;
-        // }
-        return 'workspaceg869agykxn5vla7t';
+    public async getWorkspaceId(): Promise<string | undefined> {
+        const variable = await this.envVariablesServer.getValue('CHE_WORKSPACE_ID');
+        if (variable && variable.value) {
+            return variable.value;
+        }
     }
 
-    public async getWsMasterApiEndPoint(): Promise<string> {
-        // const variable = await this.envVariablesServer.getValue("CHE_API_EXTERNAL");
-        // if (variable && variable.value) {
-        //     return variable.value;
-        // }
-        return 'http://localhost:8080/api';
+    public async getWsMasterApiEndPoint(): Promise<string | undefined> {
+        const variable = await this.envVariablesServer.getValue('CHE_API_EXTERNAL');
+        if (variable && variable.value) {
+            return variable.value;
+        }
     }
 
     private async getRemoteApi(): Promise<IRemoteAPI> {

@@ -11,7 +11,7 @@ import { Workspace } from './che-workspace-client';
 
 export const CHE_TERMINAL_WIDGET_FACTORY_ID = 'che_terminal';
 
-export const CheTerminalWidgetOptions = Symbol("CheTerminalWidgetOptions");
+export const CheTerminalWidgetOptions = Symbol('CheTerminalWidgetOptions');
 export interface CheTerminalWidgetOptions {
     id: string,
     caption: string,
@@ -22,6 +22,7 @@ export interface CheTerminalWidgetOptions {
 export interface CheTerminalWidgetFactoryOptions extends TerminalWidgetFactoryOptions {
 }
 
+/** Extended Theia's terminal widget that connects to Che terminal-exec server. */
 @injectable()
 export class CheTerminalWidget extends TerminalWidget {
 
@@ -33,7 +34,7 @@ export class CheTerminalWidget extends TerminalWidget {
     }
 
     protected async connectTerminalProcess(): Promise<void> {
-        const termServer = await this.cheWorkspaceClient.findTerminalServer();
+        const termServer = await this.cheWorkspaceClient.getServer('terminal-exec');
         if (!termServer) {
             return;
         }

@@ -8,6 +8,7 @@
 import { TaskConfiguration, TaskInfo } from '@theia/task/lib/common';
 
 export const CHE_TASK_TYPE = 'che';
+export const PREVIEW_URL_ATTR_NAME = 'previewUrl';
 
 export interface CheTaskConfiguration extends TaskConfiguration {
     readonly type: 'che',
