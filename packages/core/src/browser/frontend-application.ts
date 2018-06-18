@@ -14,7 +14,6 @@ import { ApplicationShell } from './shell/application-shell';
 import { ShellLayoutRestorer } from './shell/shell-layout-restorer';
 import { FrontendApplicationStateService } from './frontend-application-state';
 import { preventNavigation, parseCssTime } from './browser';
-import { ThemeService } from './theming';
 
 /**
  * Clients can implement to get a callback for contributing widgets to a shell on start.
@@ -64,9 +63,6 @@ export abstract class DefaultFrontendApplicationContribution implements Frontend
 @injectable()
 export class FrontendApplication {
 
-    @inject(ThemeService)
-    protected readonly themeService: ThemeService;
-
     constructor(
         @inject(CommandRegistry) protected readonly commands: CommandRegistry,
         @inject(MenuModelRegistry) protected readonly menus: MenuModelRegistry,
@@ -93,8 +89,6 @@ export class FrontendApplication {
      * - reveal the application shell if it was hidden by a startup indicator
      */
     async start(): Promise<void> {
-        this.themeService.loadUserTheme();
-
         await this.startContributions();
         this.stateService.state = 'started_contributions';
 
