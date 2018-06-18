@@ -5,14 +5,11 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { injectable } from 'inversify';
-import { MonacoThemeProvider, MonacoTheme } from '@theia/monaco/lib/common/monaco-theme-protocol';
+import { MonacoTheme } from '@theia/monaco/lib/common/monaco-theme-protocol';
 
-@injectable()
-export class BuiltinMonacoThemeProvider implements MonacoThemeProvider {
+export class BuiltinMonacoThemeProvider {
 
-    // tslint:disable-next-line:no-any
-    static readonly rawThemes: { [file: string]: any } = {
+    static readonly rawThemes: { [file: string]: object } = {
         './dark_default.json': require('../../data/monaco-themes/vscode/dark_defaults.json'),
         './dark_vs.json': require('../../data/monaco-themes/vscode/dark_vs.json'),
         './dark_plus.json': require('../../data/monaco-themes/vscode/dark_plus.json'),
@@ -24,13 +21,13 @@ export class BuiltinMonacoThemeProvider implements MonacoThemeProvider {
         'monokai': 'monokai-color-theme',
     };
 
-    async gatherMonacoThemes() {
-        return Promise.all([
-            'dark-plus', 'monokai'
-        ].map(name => {
-            const rawName = BuiltinMonacoThemeProvider.nameMap[name] || name;
-            return this.convertVscodeToMonaco(
-                BuiltinMonacoThemeProvider.rawThemes[`./${rawName}.json`],
+    static compileMonacoThemes() {
+        [
+            'dark-plus', 'monokai',
+        ].forEach(name => {
+            const rawName = this.nameMap[name] || name;
+            const theme = this.convertVscodeToMonaco(
+                this.rawThemes[`./${rawName}.json`],
                 {
                     name,
                     base: 'vs-dark',
@@ -39,17 +36,19 @@ export class BuiltinMonacoThemeProvider implements MonacoThemeProvider {
                     colors: {},
                 }
             );
-        }));
+
+            monaco.editor.defineTheme(theme.name, theme);
+        });
     }
 
     // tslint:disable-next-line:no-any
-    async convertVscodeToMonaco(vscodeTheme: any, monacoTheme: MonacoTheme): Promise<MonacoTheme> {
+    static convertVscodeToMonaco(vscodeTheme: any, monacoTheme: MonacoTheme): MonacoTheme {
 
         // Recursion in order to follow the theme dependencies that vscode has...
         if (typeof vscodeTheme.include !== 'undefined') {
-            const subTheme = BuiltinMonacoThemeProvider.rawThemes[vscodeTheme.include];
+            const subTheme = this.rawThemes[vscodeTheme.include];
             if (subTheme) {
-                await this.convertVscodeToMonaco(subTheme, monacoTheme);
+                this.convertVscodeToMonaco(subTheme, monacoTheme);
             }
         }
 
@@ -67,9 +66,8 @@ export class BuiltinMonacoThemeProvider implements MonacoThemeProvider {
 
                 for (const scope of tokenColor.scope) {
 
-                    // tslint:disable-next-line:no-any
-                    const settings = Object.keys(tokenColor.settings).reduce((previous: any, current) => {
-                        // Converting numbers into a format that monaco understands
+                    // Converting numbers into a format that monaco understands
+                    const settings = Object.keys(tokenColor.settings).reduce((previous: { [key: string]: string }, current) => {
                         let value: string = tokenColor.settings[current];
                         if (typeof value === typeof '') {
                             value = value.replace(/^\#/, '').slice(0, 6);

@@ -7,15 +7,14 @@
 
 import { interfaces, ContainerModule } from 'inversify';
 import { FrontendApplicationContribution } from '@theia/core/lib/browser';
-import { MonacoThemeProvider } from '@theia/monaco/lib/common/monaco-theme-protocol';
-import { ThemeProvider, bindContributionProvider } from '@theia/core';
+import { bindContributionProvider } from '@theia/core';
 import { MonacoTextmateFrontendApplicationContribution } from './monaco-textmate-frontend-contribution';
 import { BuiltinTextmateThemeProvider } from './builtin-textmate-theme-provider';
 import { BuiltinMonacoThemeProvider } from './builtin-monaco-theme-provider';
 import { TextmateRegistry, TextmateRegistryImpl } from './textmate-registry';
 import { LanguageGrammarDefinitionContribution, MonacoTextmateBuiltinGrammarContribution } from '.';
 import { MonacoTextmateService } from './monaco-textmate-service';
-import { DefaultThemeName } from '@theia/core/lib/browser/theming';
+import { ThemeService } from '@theia/core/lib/browser/theming';
 
 export default new ContainerModule((bind: interfaces.Bind, unbind: interfaces.Unbind, isBound: interfaces.IsBound, rebind: interfaces.Rebind) => {
     bind(MonacoTextmateService).toSelf().inSingletonScope();
@@ -23,14 +22,10 @@ export default new ContainerModule((bind: interfaces.Bind, unbind: interfaces.Un
 
     bind(FrontendApplicationContribution).to(MonacoTextmateFrontendApplicationContribution).inSingletonScope();
 
-    bind(BuiltinTextmateThemeProvider).toSelf().inSingletonScope();
-    bind(BuiltinMonacoThemeProvider).toSelf().inSingletonScope();
-
-    bind(ThemeProvider).toService(BuiltinTextmateThemeProvider);
-    bind(MonacoThemeProvider).toService(BuiltinMonacoThemeProvider);
-
     bindContributionProvider(bind, LanguageGrammarDefinitionContribution);
     bind(LanguageGrammarDefinitionContribution).to(MonacoTextmateBuiltinGrammarContribution).inSingletonScope();
 
-    rebind(DefaultThemeName).toConstantValue('dark-plus');
+    const themeService = ThemeService.get();
+    BuiltinMonacoThemeProvider.compileMonacoThemes();
+    themeService.register(...BuiltinTextmateThemeProvider.theiaTextmateThemes);
 });

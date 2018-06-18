@@ -5,53 +5,55 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { injectable, inject, named, postConstruct } from 'inversify';
-import { FrontendApplicationContribution } from '.';
+import { injectable, inject } from 'inversify';
 import { CommandRegistry, CommandContribution, CommandHandler, Command } from '../common/command';
-import { Theme, ThemeProvider } from '../common/theming-protocol';
-import { ContributionProvider } from '../common';
-import { Deferred } from '../common/promise-util';
+import { ThemeProvider } from '../common/theming-protocol';
 import { Emitter, Event } from '../common/event';
 import { QuickOpenModel, QuickOpenItem, QuickOpenMode } from './quick-open/quick-open-model';
 import { QuickOpenService } from './quick-open/quick-open-service';
 
-export const DefaultThemeName = Symbol('DefaultThemeName');
+export const ThemeServiceSymbol = Symbol('ThemeService');
+
+export interface Theme {
+    id: string;
+    label: string;
+    description?: string;
+    editorTheme?: string;
+    activate(): void;
+    deactivate(): void;
+}
 
 export interface ThemeChangeEvent {
     newTheme: Theme;
     oldTheme?: Theme;
 }
 
-@injectable()
 export class ThemeService implements ThemeProvider {
 
     private themes: { [id: string]: Theme } = {};
     private activeTheme: Theme | undefined;
     private readonly themeChange = new Emitter<ThemeChangeEvent>();
-    protected readonly _ready = new Deferred<void>();
-
-    @inject(ContributionProvider) @named(ThemeProvider)
-    protected readonly themeProviderContributionProvider: ContributionProvider<ThemeProvider>;
-
-    @inject(DefaultThemeName)
-    public readonly defaultTheme: string;
+    private readonly themeProviders: ThemeProvider[] = [];
 
     readonly onThemeChange: Event<ThemeChangeEvent> = this.themeChange.event;
-    readonly ready = this._ready.promise;
+    readonly ready: Promise<void> = this.gatherThemes().then(() => undefined);
 
-    protected constructor() {
-        const wnd = window as any; // tslint:disable-line
-        wnd.__themeService = this;
+    static get() {
+        const global = window as any; // tslint:disable-line
+        return global[ThemeServiceSymbol] || new ThemeService();
     }
 
-    @postConstruct()
-    protected async init() {
-        await this.gatherThemes();
-        this._ready.resolve();
+    protected constructor(
+        public defaultTheme: string = 'dark'
+    ) {
+        const global = window as any; // tslint:disable-line
+        global[ThemeServiceSymbol] = this;
     }
 
-    register(theme: Theme) {
-        this.themes[theme.id] = theme;
+    register(...themes: Theme[]) {
+        for (const theme of themes) {
+            this.themes[theme.id] = theme;
+        }
     }
 
     getThemes() {
@@ -73,8 +75,8 @@ export class ThemeService implements ThemeProvider {
 
         // Concurrent gathering of the themes
         await Promise.all(
-            this.themeProviderContributionProvider.getContributions()
-                .map(provider => provider.gatherThemes()
+            this.themeProviders.map(
+                provider => provider.gatherThemes()
                     .catch(error => {
                         console.error(error);
                         return [];
@@ -82,15 +84,17 @@ export class ThemeService implements ThemeProvider {
                     .then(themes => {
                         gathered.push(...themes);
                     })
-                )
+            )
         );
 
         // Update theme cache in one synchronous execution
-        for (const theme of gathered) {
-            this.register(theme);
-        }
-
+        this.register(...gathered);
         return gathered;
+    }
+
+    loadUserTheme() {
+        const theme = this.getCurrentTheme();
+        this.setCurrentTheme(theme.id);
     }
 
     setCurrentTheme(themeId: string) {
@@ -112,19 +116,6 @@ export class ThemeService implements ThemeProvider {
         return this.themes[themeId] || this.themes[this.defaultTheme];
     }
 
-}
-
-@injectable()
-export class ThemingFrontendApplicationContribution implements FrontendApplicationContribution {
-
-    @inject(ThemeService)
-    protected readonly themeService: ThemeService;
-
-    async initialize() {
-        await this.themeService.ready;
-        const currentTheme = this.themeService.getCurrentTheme();
-        this.themeService.setCurrentTheme(currentTheme.id);
-    }
 }
 
 @injectable()
@@ -181,7 +172,6 @@ export class ThemingCommandContribution implements CommandContribution, CommandH
     }
 }
 
-@injectable()
 export class BuiltinThemeProvider implements ThemeProvider {
 
     // Webpack converts these `require` in some Javascript object that wraps the `.css` files

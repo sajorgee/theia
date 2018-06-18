@@ -6,13 +6,11 @@
  */
 
 import { ContainerModule, decorate, injectable } from 'inversify';
-import { MenuContribution, CommandContribution, bindContributionProvider } from '@theia/core/lib/common';
+import { MenuContribution, CommandContribution } from '@theia/core/lib/common';
 import { QuickOpenService, FrontendApplicationContribution, KeybindingContribution } from '@theia/core/lib/browser';
-import { ThemeProvider } from '@theia/core/lib/common/theming-protocol';
 import { Languages, Workspace } from '@theia/languages/lib/common';
 import { TextEditorProvider, DiffNavigatorProvider } from '@theia/editor/lib/browser';
 import { StrictEditorTextFocusContext } from '@theia/editor/lib/browser/editor-keybinding-contexts';
-import { MonacoThemeProvider } from '../common/monaco-theme-protocol';
 import { MonacoToProtocolConverter, ProtocolToMonacoConverter } from 'monaco-languageclient';
 import { MonacoEditorProvider } from './monaco-editor-provider';
 import { MonacoEditorMenuContribution } from './monaco-menu';
@@ -31,7 +29,6 @@ import { MonacoQuickOpenService } from './monaco-quick-open-service';
 import { MonacoDiffNavigatorFactory } from './monaco-diff-navigator-factory';
 import { MonacoStrictEditorTextFocusContext } from './monaco-keybinding-contexts';
 import { MonacoFrontendApplicationContribution } from './monaco-frontend-application-contribution';
-import { MonacoThemeService } from './monaco-theme-service';
 
 decorate(injectable(), MonacoToProtocolConverter);
 decorate(injectable(), ProtocolToMonacoConverter);
@@ -71,10 +68,6 @@ export default new ContainerModule((bind, unbind, isBound, rebind) => {
 
     bind(MonacoStatusBarContribution).toSelf().inSingletonScope();
     bind(FrontendApplicationContribution).toService(MonacoStatusBarContribution);
-
-    bind(MonacoThemeService).toSelf().inSingletonScope();
-    bind(ThemeProvider).toService(MonacoThemeService);
-    bindContributionProvider(bind, MonacoThemeProvider);
 
     bind(MonacoCommandRegistry).toSelf().inSingletonScope();
     bind(CommandContribution).to(MonacoEditorCommandHandlers).inSingletonScope();

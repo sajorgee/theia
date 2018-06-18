@@ -39,8 +39,7 @@ import {
     PreferenceScope, PreferenceService, PreferenceServiceImpl
 } from './preferences';
 import { ContextMenuRenderer } from './context-menu-renderer';
-import { DefaultThemeName, ThemingCommandContribution, ThemeService, BuiltinThemeProvider, ThemingFrontendApplicationContribution } from './theming';
-import { ThemeProvider } from '../common/theming-protocol';
+import { ThemingCommandContribution, ThemeService, BuiltinThemeProvider } from './theming';
 import { ConnectionStatusService, FrontendConnectionStatusService, ApplicationConnectionStatusContribution } from './connection-status-service';
 import { DiffUriLabelProviderContribution } from './diff-uris';
 import { ApplicationServer, applicationPath } from "../common/application-protocol";
@@ -150,12 +149,9 @@ export const frontendApplicationModule = new ContainerModule((bind, unbind, isBo
         return connection.createProxy<EnvVariablesServer>(envVariablesPath);
     }).inSingletonScope();
 
-    bind(ThemeService).toSelf().inSingletonScope();
-    bind(DefaultThemeName).toConstantValue('dark');
-
+    bind(ThemeService).toDynamicValue(() => ThemeService.get());
     bind(CommandContribution).to(ThemingCommandContribution).inSingletonScope();
-    bind(FrontendApplicationContribution).to(ThemingFrontendApplicationContribution).inSingletonScope();
 
-    bindContributionProvider(bind, ThemeProvider);
-    bind(ThemeProvider).to(BuiltinThemeProvider).inSingletonScope();
+    const themeService = ThemeService.get();
+    themeService.register(...BuiltinThemeProvider.themes);
 });

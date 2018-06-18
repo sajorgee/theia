@@ -5,16 +5,9 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { inject, injectable } from "inversify";
-import { ThemeProvider } from "@theia/core";
 import { BuiltinThemeProvider } from '@theia/core/lib/browser/theming';
-import { MonacoThemeService } from "@theia/monaco/lib/browser/monaco-theme-service";
 
-@injectable()
-export class BuiltinTextmateThemeProvider implements ThemeProvider {
-
-    @inject(MonacoThemeService)
-    protected readonly monacoThemeService: MonacoThemeService;
+export class BuiltinTextmateThemeProvider {
 
     static readonly theiaTextmateThemes = [
         {
@@ -42,15 +35,5 @@ export class BuiltinTextmateThemeProvider implements ThemeProvider {
             },
         }
     ];
-
-    async gatherThemes() {
-        return Promise.all(
-            BuiltinTextmateThemeProvider.theiaTextmateThemes
-                .map(async theme => ({
-                    ...theme,
-                    editorTheme: await this.monacoThemeService.ready(theme.editorTheme),
-                }))
-        );
-    }
 
 }
