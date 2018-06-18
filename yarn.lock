@@ -5912,9 +5912,9 @@ monaco-editor-core@^0.12.0:
   version "0.12.0"
   resolved "https://registry.yarnpkg.com/monaco-editor-core/-/monaco-editor-core-0.12.0.tgz#185c4233907582b78472fe30bad13af7ad6e8d8e"
 
-monaco-editor-textmate@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/monaco-editor-textmate/-/monaco-editor-textmate-1.0.3.tgz#22f43397b0d3619a9789a5912fc9147e743d4b12"
+monaco-editor-textmate@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/monaco-editor-textmate/-/monaco-editor-textmate-2.0.0.tgz#f24ace7e37b6169d910b329e20d1ae2b244ba55e"
 
 monaco-html@^2.0.2:
   version "2.1.0"
@@ -5937,9 +5937,9 @@ monaco-languages@^1.0.4:
   version "1.2.0"
   resolved "https://registry.yarnpkg.com/monaco-languages/-/monaco-languages-1.2.0.tgz#125e6b6fb5e51239493e1a6d5cc99b7572382f75"
 
-monaco-textmate@^2.0.0:
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/monaco-textmate/-/monaco-textmate-2.0.0.tgz#4c349ac6a85b2ba4c3a874c1909aee1158214777"
+monaco-textmate@^3.0.0:
+  version "3.0.0"
+  resolved "https://registry.yarnpkg.com/monaco-textmate/-/monaco-textmate-3.0.0.tgz#abfbce7d7ff000954ae3206e512f325db6e7b8a8"
   dependencies:
     fast-plist "^0.1.2"
 
@@ -6397,9 +6397,9 @@ onetime@^2.0.0:
   dependencies:
     mimic-fn "^1.0.0"
 
-onigasm@^1.3.1:
-  version "1.3.1"
-  resolved "https://registry.yarnpkg.com/onigasm/-/onigasm-1.3.1.tgz#765e8df42b078338f09db9420b55276b4cd1ce02"
+onigasm@^2.0.0:
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/onigasm/-/onigasm-2.1.0.tgz#706fa29c80a2fdae7dc6ed8c8ae71c123d10d510"
   dependencies:
     lru-cache "^4.1.1"
 

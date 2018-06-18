@@ -5,9 +5,9 @@
   "dependencies": {
     "@theia/core": "^0.3.11",
     "@theia/monaco": "^0.3.11",
-    "monaco-editor-textmate": "^1.0.3",
-    "monaco-textmate": "^2.0.0",
-    "onigasm": "^1.3.1"
+    "monaco-editor-textmate": "^2.0.0",
+    "monaco-textmate": "^3.0.0",
+    "onigasm": "^2.0.0"
   },
   "publishConfig": {
     "access": "public"
