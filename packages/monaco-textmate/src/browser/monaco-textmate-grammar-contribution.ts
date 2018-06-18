@@ -35,7 +35,6 @@ export class MonacoTextmateBuiltinGrammarContribution implements LanguageGrammar
     ];
 
     registerTextmateLanguage(registry: TextmateRegistry) {
-        // const _this = this;
         for (const grammar of this.builtins) {
             registry.registerTextMateGrammarScope(grammar.scope, {
                 async getGrammarDefinition() {

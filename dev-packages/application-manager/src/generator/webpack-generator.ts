@@ -39,7 +39,6 @@ const { mode }  = yargs.option('mode', {
 }).argv;
 const development = mode === 'development';${this.ifMonaco(() => `
 
-const monacoEditorPath = development ? '${this.resolve('monaco-editor', 'dev/vs')}' : '${this.resolve('monaco-editor', 'esm/vs')}';
 const monacoEditorCorePath = development ? '${this.resolve('monaco-editor-core', 'dev/vs')}' : '${this.resolve('monaco-editor-core', 'min/vs')}';
 const monacoLanguagesPath = '${this.resolve('monaco-languages', 'release/min')}';
 const monacoCssLanguagePath = '${this.resolve('monaco-css', 'release/min')}';
@@ -113,14 +112,14 @@ module.exports = {
     resolve: {
         extensions: ['.js']${this.ifMonaco(() => `,
         alias: {
-            'vs': path.resolve(outputPath, monacoEditorPath)
+            'vs': path.resolve(outputPath, monacoEditorCorePath)
         }`)}
     },
     devtool: 'source-map',
     plugins: [
         new CopyWebpackPlugin([${this.ifMonaco(() => `
             {
-                from: monacoEditorPath,
+                from: monacoEditorCorePath,
                 to: 'vs'
             },
             {

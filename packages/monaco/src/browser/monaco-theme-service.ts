@@ -12,8 +12,7 @@ import { MonacoThemeProvider, MonacoTheme } from "../common/monaco-theme-protoco
 import { Deferred } from "@theia/core/lib/common/promise-util";
 
 /**
- * This class hooks onto the Theia Timport { error } from 'shelljs';
-heme service as a Theme provider, while it doesn't provide any theme.
+ * This class hooks onto the Theia Theme service as a Theme provider, while it doesn't provide any theme.
  * Although when it is queried for more themes, it will trigger its refresh sequence to redefine the monaco themes.
  */
 @injectable()
