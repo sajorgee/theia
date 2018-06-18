@@ -49,6 +49,10 @@ import { EnvVariablesServer, envVariablesPath } from "./../common/env-variables"
 import { FrontendApplicationStateService } from './frontend-application-state';
 
 export const frontendApplicationModule = new ContainerModule((bind, unbind, isBound, rebind) => {
+    const themeService = ThemeService.get();
+    themeService.register(...BuiltinThemeProvider.themes);
+    themeService.startupTheme();
+
     bind(FrontendApplication).toSelf().inSingletonScope();
     bind(FrontendApplicationStateService).toSelf().inSingletonScope();
     bind(DefaultFrontendApplicationContribution).toSelf();
@@ -151,7 +155,4 @@ export const frontendApplicationModule = new ContainerModule((bind, unbind, isBo
 
     bind(ThemeService).toDynamicValue(() => ThemeService.get());
     bind(CommandContribution).to(ThemingCommandContribution).inSingletonScope();
-
-    const themeService = ThemeService.get();
-    themeService.register(...BuiltinThemeProvider.themes);
 });

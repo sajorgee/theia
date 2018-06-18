@@ -92,6 +92,11 @@ export class ThemeService implements ThemeProvider {
         return gathered;
     }
 
+    startupTheme() {
+        const theme = this.getCurrentTheme();
+        theme.activate();
+    }
+
     loadUserTheme() {
         const theme = this.getCurrentTheme();
         this.setCurrentTheme(theme.id);
