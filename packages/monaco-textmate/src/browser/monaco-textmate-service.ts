@@ -18,6 +18,7 @@ export class MonacoTextmateService implements Disposable {
 
     protected readonly toDispose = new DisposableCollection();
 
+    protected readonly activatedLanguages = new Set<string>();
     protected textmateRegistry: Registry;
 
     @inject(ContributionProvider) @named(LanguageGrammarDefinitionContribution)
@@ -51,9 +52,12 @@ export class MonacoTextmateService implements Disposable {
         });
 
         this.toDispose.push(this.monacoModelService.onDidCreate(model => {
-            setTimeout(() => {
-                this.activateLanguage(model.languageId);
-            }, 2000);
+            if (!this.activatedLanguages.has(model.languageId)) {
+                this.activatedLanguages.add(model.languageId);
+                setTimeout(() => {
+                    this.activateLanguage(model.languageId);
+                }, 2000);
+            }
         }));
     }
 
