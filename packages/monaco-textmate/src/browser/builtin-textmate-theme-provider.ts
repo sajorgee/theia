@@ -11,42 +11,13 @@ export class BuiltinTextmateThemeProvider {
 
     static readonly theiaTextmateThemes = [
         {
-            id: 'dark',
-            label: 'Dark+ (Textmate)',
-            description: 'Textmate Theme',
+            ...BuiltinThemeProvider.darkTheme,
             editorTheme: 'dark-plus',
-            activate: () => {
-                BuiltinThemeProvider.dark.use();
-            },
-            deactivate: () => {
-                BuiltinThemeProvider.dark.unuse();
-            },
         },
         {
-            id: 'light',
-            label: 'Light+ (Textmate)',
-            description: 'Textmate Theme',
+            ...BuiltinThemeProvider.lightTheme,
             editorTheme: 'light-plus',
-            activate: () => {
-                BuiltinThemeProvider.light.use();
-            },
-            deactivate: () => {
-                BuiltinThemeProvider.light.unuse();
-            },
-
         },
-        {
-            id: 'monokai',
-            label: 'Monokai',
-            description: 'Textmate Theme',
-            editorTheme: 'monokai',
-            activate: () => {
-                BuiltinThemeProvider.dark.use();
-            },
-            deactivate: () => {
-                BuiltinThemeProvider.dark.unuse();
-            },
-        }
     ];
 
 }

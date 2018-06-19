@@ -10,8 +10,6 @@ import { MonacoTheme } from '@theia/monaco/lib/common/monaco-theme-protocol';
 export class BuiltinMonacoThemeProvider {
 
     static readonly rawThemes: { [file: string]: object } = {
-        './monokai-color-theme.json': require('../../data/monaco-themes/vscode/monokai-color-theme.json'),
-
         './dark_default.json': require('../../data/monaco-themes/vscode/dark_defaults.json'),
         './dark_vs.json': require('../../data/monaco-themes/vscode/dark_vs.json'),
         './dark_plus.json': require('../../data/monaco-themes/vscode/dark_plus.json'),
@@ -22,7 +20,6 @@ export class BuiltinMonacoThemeProvider {
     };
 
     static readonly nameMap: { [name: string]: string } = {
-        'monokai': 'monokai-color-theme',
         'light-plus': 'light_plus',
         'dark-plus': 'dark_plus',
     };
@@ -33,7 +30,7 @@ export class BuiltinMonacoThemeProvider {
 
     static compileMonacoThemes() {
         [
-            'light-plus', 'dark-plus', 'monokai',
+            'light-plus', 'dark-plus',
         ].forEach(name => {
             const rawName = this.nameMap[name] || name;
             const theme = this.convertVscodeToMonaco(

@@ -180,36 +180,38 @@ export class ThemingCommandContribution implements CommandContribution, CommandH
 export class BuiltinThemeProvider implements ThemeProvider {
 
     // Webpack converts these `require` in some Javascript object that wraps the `.css` files
-    static readonly dark = require('../../src/browser/style/variables-dark.useable.css');
-    static readonly light = require('../../src/browser/style/variables-bright.useable.css');
+    static readonly darkCss = require('../../src/browser/style/variables-dark.useable.css');
+    static readonly lightCss = require('../../src/browser/style/variables-bright.useable.css');
+
+    static readonly darkTheme = {
+        id: 'dark',
+        label: 'Dark Theme',
+        description: 'Bright fonts on dark backgrounds.',
+        editorTheme: 'vs-dark',
+        activate() {
+            BuiltinThemeProvider.darkCss.use();
+        },
+        deactivate() {
+            BuiltinThemeProvider.darkCss.unuse();
+        }
+    };
+
+    static readonly lightTheme = {
+        id: 'light',
+        label: 'Light Theme',
+        description: 'Dark fonts on light backgrounds.',
+        editorTheme: 'vs',
+        activate() {
+            BuiltinThemeProvider.lightCss.use();
+        },
+        deactivate() {
+            BuiltinThemeProvider.lightCss.unuse();
+        }
+    };
 
     static readonly themes = [
-        {
-            // Dark Theme
-            id: 'dark',
-            label: 'Dark Theme',
-            description: 'Bright fonts on dark backgrounds.',
-            editorTheme: 'vs-dark',
-            activate() {
-                BuiltinThemeProvider.dark.use();
-            },
-            deactivate() {
-                BuiltinThemeProvider.dark.unuse();
-            }
-        },
-        {
-            // Light Theme
-            id: 'light',
-            label: 'Light Theme',
-            description: 'Dark fonts on light backgrounds.',
-            editorTheme: 'vs',
-            activate() {
-                BuiltinThemeProvider.light.use();
-            },
-            deactivate() {
-                BuiltinThemeProvider.light.unuse();
-            }
-        },
+        BuiltinThemeProvider.darkTheme,
+        BuiltinThemeProvider.lightTheme,
     ];
 
     async gatherThemes() {
