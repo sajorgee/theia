@@ -27,7 +27,7 @@ Each task configuration looks like this:
 
 *label*: a unique string that identifies the task. That's what's shown to the user, when it's time to chose one task configuration to run.
 
-*type*: determines what type of process will be used to execute the task. Can be "process" or "shell". Terminal processes can be shown in Theia's frontend, in a terminal widget. Raw processes are run without their output being shown.
+*type*: determines what type of process will be used to execute the task. Can be "process" or "shell". "Shell" processes' output can be shown in Theia's frontend, in a terminal widget. If type set as "process" then task will be run without their output being shown.
 
 *cwd*: the current working directory, in which the task's command will execute. This is the equivalent of doing a "cd" to that directory, on the command-line, before running the command. This can contain the variable *${workspaceFolder}*, which will be replaced at execution time by the path of the current workspace. If left undefined, will by default be set to workspace root.
 
