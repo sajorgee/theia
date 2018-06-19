@@ -11,9 +11,9 @@ export class BuiltinTextmateThemeProvider {
 
     static readonly theiaTextmateThemes = [
         {
-            id: 'dark-plus',
+            id: 'dark',
             label: 'Dark+ (Textmate)',
-            description: 'it is dark',
+            description: 'Textmate Theme',
             editorTheme: 'dark-plus',
             activate: () => {
                 BuiltinThemeProvider.dark.use();
@@ -23,9 +23,22 @@ export class BuiltinTextmateThemeProvider {
             },
         },
         {
+            id: 'light',
+            label: 'Light+ (Textmate)',
+            description: 'Textmate Theme',
+            editorTheme: 'light-plus',
+            activate: () => {
+                BuiltinThemeProvider.light.use();
+            },
+            deactivate: () => {
+                BuiltinThemeProvider.light.unuse();
+            },
+
+        },
+        {
             id: 'monokai',
-            label: 'Monokai (Textmate)',
-            description: 'it is not so dark',
+            label: 'Monokai',
+            description: 'Textmate Theme',
             editorTheme: 'monokai',
             activate: () => {
                 BuiltinThemeProvider.dark.use();

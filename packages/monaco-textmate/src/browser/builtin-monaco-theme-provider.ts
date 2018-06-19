@@ -10,27 +10,37 @@ import { MonacoTheme } from '@theia/monaco/lib/common/monaco-theme-protocol';
 export class BuiltinMonacoThemeProvider {
 
     static readonly rawThemes: { [file: string]: object } = {
+        './monokai-color-theme.json': require('../../data/monaco-themes/vscode/monokai-color-theme.json'),
+
         './dark_default.json': require('../../data/monaco-themes/vscode/dark_defaults.json'),
         './dark_vs.json': require('../../data/monaco-themes/vscode/dark_vs.json'),
         './dark_plus.json': require('../../data/monaco-themes/vscode/dark_plus.json'),
-        './monokai-color-theme.json': require('../../data/monaco-themes/vscode/monokai-color-theme.json'),
+
+        './light_default.json': require('../../data/monaco-themes/vscode/light_defaults.json'),
+        './light_vs.json': require('../../data/monaco-themes/vscode/light_vs.json'),
+        './light_plus.json': require('../../data/monaco-themes/vscode/light_plus.json'),
     };
 
     static readonly nameMap: { [name: string]: string } = {
-        'dark-plus': 'dark_plus',
         'monokai': 'monokai-color-theme',
+        'light-plus': 'light_plus',
+        'dark-plus': 'dark_plus',
+    };
+
+    static readonly baseMap: { [name: string]: monaco.editor.BuiltinTheme } = {
+        'light-plus': 'vs',
     };
 
     static compileMonacoThemes() {
         [
-            'dark-plus', 'monokai',
+            'light-plus', 'dark-plus', 'monokai',
         ].forEach(name => {
             const rawName = this.nameMap[name] || name;
             const theme = this.convertVscodeToMonaco(
                 this.rawThemes[`./${rawName}.json`],
                 {
                     name,
-                    base: 'vs-dark',
+                    base: this.baseMap[name] || 'vs-dark',
                     inherit: true,
                     rules: [],
                     colors: {},
