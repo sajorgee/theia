@@ -70,7 +70,7 @@ before_script:
 before_install:
   - curl -o- -L https://yarnpkg.com/install.sh | bash -s -- --version 1.7.0
   - export PATH=$HOME/.yarn/bin:$PATH ;
-install: yarn
+install: yarn && if [ $(git status -s | wc -c) -gt 0 ]; then sh -c "exit 1"; fi
 script: travis_retry yarn test ;
 notifications:
   webhooks:
