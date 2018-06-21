@@ -85,13 +85,17 @@ export class GitHistoryContribution extends AbstractViewContribution<GitHistoryW
     }
 
     async showWidget(uri: string | undefined) {
-        this.refreshWidget(uri);
-        this.openView({
+        await this.openView({
             activate: true
         });
+        this.refreshWidget(uri);
     }
 
     protected async refreshWidget(uri: string | undefined) {
+        if (!this.tryGetWidget()) {
+            // the widget doesn't exist, so don't wake it up
+            return;
+        }
         const options: Git.Options.Log = {
             uri,
             maxCount: GIT_HISTORY_MAX_COUNT,
@@ -99,9 +103,6 @@ export class GitHistoryContribution extends AbstractViewContribution<GitHistoryW
         };
         const widget = await this.widget;
         await widget.setContent(options);
-        this.openView({
-            activate: false
-        });
     }
 
     protected newUriAwareCommandHandler(handler: UriCommandHandler<URI>): UriAwareCommandHandler<URI> {
