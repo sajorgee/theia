@@ -5,43 +5,30 @@
  * You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  */
 
-import { Widget } from '@phosphor/widgets';
 import { Event } from '@theia/core';
+import { BaseWidget } from '@theia/core/lib/browser';
 
 /**
  * Terminal UI widget.
  */
-export const TerminalWidget = Symbol('TerminalWidget');
-export interface TerminalWidget extends Widget {
+export abstract class TerminalWidget extends BaseWidget {
+
     /**
      * Start terminal and return terminal id.
      * @param id - terminal id.
      */
-    start(id?: number): Promise<number>;
+   abstract start(id?: number): Promise<number>;
 
-    /**
-     * Send text to the terminal server.
-     * @param text - text content.
-     */
-    sendText(text: string): void;
+   /**
+    * Send text to the terminal server.
+    * @param text - text content.
+    */
+   abstract sendText(text: string): void;
 
-    /**
-     * Event which fires when terminal did closed. Event value contains closed terminal widget definition.
-     */
-    onTerminalDidClose: Event<TerminalWidget>;
-}
-
-export function isTerminalWidget(widget: Widget | undefined): widget is TerminalWidget {
-    if (!widget) {
-        return false;
-    }
-
-    const widgetToCheck = <TerminalWidget>widget;
-    if (widgetToCheck.start && widgetToCheck.sendText && widgetToCheck.onTerminalDidClose) {
-        return true;
-    }
-
-    return false;
+   /**
+    * Event which fires when terminal did closed. Event value contains closed terminal widget definition.
+    */
+   abstract onTerminalDidClose: Event<TerminalWidget>;
 }
 
 /**

@@ -8,8 +8,8 @@
 import * as Xterm from 'xterm';
 import { proposeGeometry } from 'xterm/lib/addons/fit/fit';
 import { inject, injectable, named, postConstruct } from "inversify";
-import { Disposable, Event, Emitter , ILogger, DisposableCollection } from '@theia/core';
-import { Widget, BaseWidget, Message, WebSocketConnectionProvider, StatefulWidget, isFirefox, MessageLoop } from '@theia/core/lib/browser';
+import { Disposable, Event, Emitter, ILogger, DisposableCollection } from '@theia/core';
+import { Widget, Message, WebSocketConnectionProvider, StatefulWidget, isFirefox, MessageLoop } from '@theia/core/lib/browser';
 import { WorkspaceService } from "@theia/workspace/lib/browser";
 import { ShellTerminalServerProxy } from '../common/shell-terminal-protocol';
 import { terminalsPath } from '../common/terminal-protocol';
@@ -45,7 +45,7 @@ interface TerminalCSSProperties {
 }
 
 @injectable()
-export class TerminalWidgetImpl extends BaseWidget implements TerminalWidget, StatefulWidget {
+export class TerminalWidgetImpl extends TerminalWidget implements StatefulWidget {
 
     private terminalId: number | undefined;
     private term: Xterm.Terminal;
@@ -211,7 +211,7 @@ export class TerminalWidgetImpl extends BaseWidget implements TerminalWidget, St
         this.terminalId = typeof id !== 'number' ? await this.createTerminal() : await this.attachTerminal(id);
         this.resizeTerminalProcess();
         this.connectTerminalProcess();
-        if (this.terminalId) {
+        if (typeof this.terminalId === "number" && IBaseTerminalServer.validateId(this.terminalId)) {
             return this.terminalId;
         }
         throw new Error('Failed to start terminal' + (id ? ` for id: ${id}.` : `.`));
@@ -332,7 +332,7 @@ export class TerminalWidgetImpl extends BaseWidget implements TerminalWidget, St
 
     sendText(text: string): void {
         if (this.waitForConnection) {
-             this.waitForConnection.promise.then(connection => {
+            this.waitForConnection.promise.then(connection => {
                 if (connection) {
                     connection.sendRequest('write', text);
                 }

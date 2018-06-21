@@ -7,7 +7,7 @@
 
 import { injectable, inject } from "inversify";
 import { KeybindingContext, ApplicationShell } from "@theia/core/lib/browser";
-import { isTerminalWidget } from "./base/terminal-widget";
+import { TerminalWidget } from './base/terminal-widget';
 
 export namespace TerminalKeybindingContexts {
     export const terminalActive = 'terminalActive';
@@ -21,6 +21,6 @@ export class TerminalActiveContext implements KeybindingContext {
     protected readonly shell: ApplicationShell;
 
     isEnabled(): boolean {
-        return isTerminalWidget(this.shell.activeWidget);
+        return this.shell.activeWidget instanceof TerminalWidget;
     }
 }
